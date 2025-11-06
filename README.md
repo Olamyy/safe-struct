@@ -124,8 +124,8 @@ except ValidationError as e:
 ## Lib.struct vs safestruct vs construct
 
 The Python binary packing ecosystem has two main poles:
-- The low-level built-in (`Lib.struct`)
-- The high-level DSL (`construct`).
+- The low-level built-in [Lib.struct](https://docs.python.org/3/library/struct.html)
+- The high-level DSL ([construct](https://github.com/construct/construct)).
 
 safestruct is designed to occupy the safe middle ground. While Construct solves many of the safety issues with struct, it introduces its own powerful but complex DSL. This makes it overkill for simple, fixed-layout protocols and introduces performance overhead.
 
