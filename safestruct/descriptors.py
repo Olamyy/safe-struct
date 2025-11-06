@@ -251,3 +251,30 @@ class ArrayField(FieldDescriptor):
 
     def get_primitive_count(self):
         return self._count
+
+
+class FloatField(FieldDescriptor):
+    """
+    A descriptor for standard C-floating point types (f, d).
+    """
+
+    def __init__(
+        self, struct_char: str, *, check: Callable[[float], bool] = lambda x: True
+    ):
+        base_char = struct_char.lstrip("@=<>!")
+
+        if base_char not in ("f", "d"):
+            raise FormatError(f"'{struct_char}' is not a valid float format char.")
+
+        super().__init__(struct_char, check=check)
+
+    def get_validator(self) -> Callable:
+        base_validator = super().get_validator()
+
+        def combined_check(value: float) -> bool:
+            if not isinstance(value, float):
+                return False
+
+            return base_validator(value)
+
+        return combined_check

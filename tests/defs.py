@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 from safestruct import struct, ByteOrder
 from safestruct import IntField, BooleanField, SubStructField
-from safestruct.descriptors import ArrayField, TextField, BytesField
+from safestruct.descriptors import ArrayField, TextField, BytesField, FloatField
 
 
 @struct(order=ByteOrder.LITTLE)
@@ -59,3 +59,12 @@ class UserRecord:
 class SubStructMessage:
     header: Header = SubStructField(Header)
     payload_id: int = IntField("L")
+
+
+@struct(order=ByteOrder.LITTLE)
+@dataclass
+class TelemetryPacket:
+    timestamp: int = IntField("Q")
+    temperature: float = FloatField("f")
+    pressure: float = FloatField("d")
+    is_valid: bool = BooleanField("?")
