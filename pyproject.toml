@@ -1,0 +1,43 @@
+[project]
+name = "safestruct"
+version = "0.1.0"
+description = "A type-safe struct wrapper for fixed-layout binary packing/unpacking"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "construct>=2.10.70",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+]
+
+
+[tool.hatch.build.targets.sdist]
+include = ["safestruct"]
+
+[tool.hatch.build.targets.wheel]
+include = ["safestruct"]
+
+[tool.hatch.build.targets.wheel.sources]
+safestruct = "safestruct"
+
+[tool.uv.workspace]
+members = [
+    ".",
+]
+
+[tool.uv.sources]
+safestruct = { workspace = true }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "construct>=2.10.70",
+    "pre-commit>=4.3.0",
+]
