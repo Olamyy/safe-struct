@@ -15,6 +15,30 @@ The core issues I'm hoping to solve with these project are:
 
 # How?
 safestruct uses the `dataclass` pattern to provide named fields, type hints, and declarative safety while retaining the C-level performance of the underlying struct module.
+It does this in a 3-step process:
+
+- Declaration: You define a structure using `@struct` and field descriptors e.g `IntField`, `BytesField`.
+- Compilation: The decorator runs *once* at class definition time:
+    * It analyzes all field descriptors to build the single, flattened C-compatible format string (e.g., `'!BHb'`).
+    * It calculates the total size of the structure.
+    * It merges all user-defined checks (e.g., `lambda x: x > 10`) with **mandatory safety checks** (e.g., C-type range limits).
+- Method Injection: It injects the high-level methods (`.pack`, `.unpack`, `.pack_into`, `.unpack_from`) which handle validation and complex structure reassembly (nested structs, arrays) before calling the raw `struct` primitives.
+
+It also injects methods for zero-copy memory access around the fastest parts of the standard library:
+
+| Method                         | Description | Performance Feature                                                  |
+|:-------------------------------| :--- |:---------------------------------------------------------------------|
+| `.pack()`                      | Standard packing. | Validation and flattening done in Python.                            |
+| `.pack_into(buffer, offset)`   | Packs into a mutable buffer (`bytearray`). | Zero-copy write: avoids creating and returning a new `bytes` object. |
+| `.unpack_from(buffer, offset)` | Unpacks from a memory buffer (`bytes`, `memoryview`). | Zero-copy read: avoids slicing the input buffer before unpacking.    |
+
+Finally, safestruct also provides an introspection API for accessing compiled structure metadata.
+
+| Property | Type | Example Value (for `Header`) | Description |
+| :--- | :--- | :--- | :--- |
+| **`.format_string`** | `str` | `'!BHb'` | The final, compiled `struct` format string used by the library. |
+| **`.size`** | `int` | `4` | The exact total byte size of the structure (no unexpected padding). |
+| **`.field_info`** | `dict` | `{'version': {...}, ...}` | Detailed internal metadata, including the raw `struct_char` and validator function for each field. |
 
 ## Core Principles
 
@@ -61,7 +85,7 @@ class Header:
 ```
 
 ### Packing and Unpacking
-safestruct will automatically compile the format string (`!H16s?`) and injects safe methods.
+safestruct will automatically compile the format string and injects safe methods, including buffer operations like `pack_into` and `unpack_from` for zero-copy memory handling.
 
 
 ```python
@@ -99,14 +123,11 @@ except ValidationError as e:
 ```
 ## Lib.struct vs safestruct vs construct
 
-The Python binary handling ecosystem has two main poles:
+The Python binary packing ecosystem has two main poles:
 - The low-level built-in (`Lib.struct`)
 - The high-level DSL (`construct`).
 
-safestruct is designed to occupy the safe middle ground.
-
-## safestruct vs. Construct
-While Construct solves many of the safety issues with struct, it introduces its own powerful but complex DSL. This makes it overkill for simple, fixed-layout protocols and introduces performance overhead.
+safestruct is designed to occupy the safe middle ground. While Construct solves many of the safety issues with struct, it introduces its own powerful but complex DSL. This makes it overkill for simple, fixed-layout protocols and introduces performance overhead.
 
 **SafeStruct is not a replacement for Construct**. If you need dynamic arrays, conditional parsing, or complex bit-level manipulation, Construct is the better choice. If you just need a safe, fast, fixed-size C struct equivalent in Python, safestruct is the answer.
 
@@ -123,7 +144,7 @@ While Construct solves many of the safety issues with struct, it introduces its 
 | Performance        | Fastest (C-speed)                | Medium (Python object overhead)    | Near-C Speed (relies on struct core)        |
 ```
 
-## Side-by-Side Code Example
+### Side-by-Side Code Example
 
 Let's consider a simple network header structure with three fields to illustrate the differences.
 The structure contains:
@@ -132,7 +153,7 @@ The structure contains:
 - `status`: Signed Char (b / 1 byte)
 
 
-### Struct Definition
+#### Struct Definition
 
 - ``Lib.struct (Format String)``: No explicit definition
   - The format string is the only definition: '!BHb'
@@ -166,7 +187,7 @@ The structure contains:
   )
   ````
 
-### Packing
+#### Packing
 
 - struct : Positional and Ambiguous
 
@@ -199,7 +220,7 @@ The structure contains:
   )
   ```
 
-### Unpacking and Debugging
+#### Unpacking and Debugging
 
 - struct : Ambiguous Tuple Output
   ```python

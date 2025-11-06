@@ -8,15 +8,23 @@ on:
 
 jobs:
   build-test:
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13', '3.14']
+
     runs-on: ubuntu-latest
+
+    name: Test Python ${{ matrix.python-version }}
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
 
       - name: Install uv
         run: pip install uv
@@ -28,17 +36,19 @@ jobs:
         run: uv run pytest tests -vvv -Werror
 
   publish:
-    if: github.ref == 'refs/heads/main'
     needs: build-test
+
+    if: github.ref == 'refs/heads/main' && success()
+
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python 3.14
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.14'
 
       - name: Install uv
         run: pip install uv
