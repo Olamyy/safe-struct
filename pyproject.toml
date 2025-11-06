@@ -8,12 +8,6 @@ dependencies = [
     "construct>=2.10.70",
 ]
 
-[project.optional-dependencies]
-dev = [
-    "pytest",
-    "ruff",
-]
-
 
 [tool.hatch.build.targets.sdist]
 include = ["safestruct"]
@@ -40,4 +34,6 @@ build-backend = "hatchling.build"
 dev = [
     "construct>=2.10.70",
     "pre-commit>=4.3.0",
+    "pytest",
+    "ruff",
 ]
