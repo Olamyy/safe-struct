@@ -49,14 +49,6 @@ class IntField(FieldDescriptor):
         super().__init__(struct_char, check=check)
 
         self._min_val, self._max_val = _INTEGER_LIMITS[base_char]
-        print(
-            "Min/Max:",
-            self._min_val,
-            self._max_val,
-            "for char:",
-            base_char,
-            struct_char,
-        )
 
     def get_validator(self) -> Callable:
         base_validator = super().get_validator()
