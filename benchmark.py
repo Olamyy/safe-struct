@@ -9,7 +9,7 @@ from safestruct.core import struct
 from safestruct.enums import ByteOrder
 from safestruct.descriptors import IntField, ArrayField
 
-NUM_ITERATIONS = 100_000
+NUM_ITERATIONS = 100_000_000
 DATA_VALUES = (1678886400, [10, 20, 30, 40], 0xABCD)
 
 

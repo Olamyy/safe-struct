@@ -119,8 +119,29 @@ try:
 except ValidationError as e:
     # Error message: "Validation failed for field 'is_compressed'. Value: False"
     print(f"Validation Error Caught: {e}")
+```
+
+safestruct also also provides a thin wrapper over the `*Field` (only `IntField` and `FloatField` for now) descriptors for common fixed-size types. 
+This makes it easy to define type-specific constants (like `uint32`, `int8`, etc.) without needing to remember the struct format characters (`'I'`, `'b'`, etc.).
+
+With this, the previous example can be rewritten as:
+
+```python
+
+from dataclasses import dataclass
+from safestruct import struct, ByteOrder, uint16 
+from safestruct.descriptors import BytesField, BooleanField
+
+@struct(order=ByteOrder.NETWORK) 
+@dataclass
+class Header:
+    protocol_version: int = uint16 
+    session_id: bytes = BytesField(length=16)
+    is_compressed: bool = BooleanField(check=lambda x: x is True)
 
 ```
+
+
 ## Lib.struct vs safestruct vs construct
 
 The Python binary packing ecosystem has two main poles:
